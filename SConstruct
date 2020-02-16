@@ -57,4 +57,5 @@ elif env['platform'] == "windows":
         env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
 
 # Headers
+env.SConscript("libmap/SConscript", exports='env')
 env.SConscript("SConscript", exports='env')
