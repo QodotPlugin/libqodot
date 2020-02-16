@@ -17,7 +17,7 @@
 
 #define GD_VARIANT_NEW(type, name, ...) \
     godot_variant name;                 \
-    api->godot_variant_new_##type(&##name, ##__VA_ARGS__)
+    api->godot_variant_new_##type(&name, ##__VA_ARGS__)
 
 #define GD_CAST_VARIANT(type, variant) \
     api->godot_variant_as_##type(variant)
@@ -38,11 +38,11 @@
     api->godot_pool_##type##_array_size(array)
 
 #define GD_STRING_TO_CHAR(dest, src)                                  \
-    godot_char_string src##_chars = api->godot_string_utf8(&##src); \
-    dest = api->godot_char_string_get_data(&##src##_chars);
+    godot_char_string src##_chars = api->godot_string_utf8(&src); \
+    dest = api->godot_char_string_get_data(&src##_chars);
 
 #define GD_VARIANT_STRING_TO_CHAR(dest, src)                       \
-    godot_string g_##dest = api->godot_variant_as_string(&##src); \
+    godot_string g_##dest = api->godot_variant_as_string(&src); \
     GD_STRING_TO_CHAR(dest, g_##dest);
 
 #define GD_DESTROY(type, name) \
