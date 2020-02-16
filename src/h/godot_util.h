@@ -23,7 +23,7 @@
     api->godot_variant_as_##type(variant)
 
 #define GD_VARIANT_ARGV(type, name, idx) \
-    godot_##type name = GD_CAST_VARIANT(type, p_args[##idx])
+    godot_##type name = GD_CAST_VARIANT(type, p_args[idx])
 
 #define GD_ARRAY_GET(array, idx) \
     api->godot_array_get(array, idx)
