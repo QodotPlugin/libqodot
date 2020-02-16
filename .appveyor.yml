@@ -18,6 +18,7 @@ install:
   - SET "PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - easy_install scons
   - if defined VS call "%VS%" %ARCH% # if defined - so we can also use mingw
+  - git submodule update --init --recursive
 
 before_build:
   - mkdir build
