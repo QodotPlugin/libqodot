@@ -1,3 +1,3 @@
 # libqodot
 
-GDNative plugin to bridge libmap to the Godot engine.
+GDNative C plugin to bridge libmap to the Godot engine.
