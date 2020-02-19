@@ -41,8 +41,14 @@ if env['platform'] == '':
 elif env['platform'] in ('x11', 'linux'):
     if env['target'] in ('debug', 'd'):
         env.Append(CCFLAGS = ['-fPIC', '-g3','-Og'])
+        env.Append(LINKFLAGS = [
+            '-Wl,-rpath,\'$$ORIGIN\''
+        ])
     else:
         env.Append(CCFLAGS = ['-fPIC', '-g','-O3'])
+        env.Append(LINKFLAGS = [
+            '-Wl,-rpath,\'$$ORIGIN\''
+        ])
 
 elif env['platform'] == "windows":
     # This makes sure to keep the session environment variables on windows,
