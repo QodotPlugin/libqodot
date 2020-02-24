@@ -13,6 +13,12 @@ env.Append(CPPPATH=['.', godot_headers_path])
 env.Append(CPPPATH=['./libmap/src/h'])
 env.Append(CPPPATH=['./src/h'])
 
+if env['platform'] == "osx":
+    env.Append(LINKFLAGS = [
+        '-install_name',
+        '@loader_path/libqodot.dylib'
+    ])
+
 env.VariantDir('build', 'src/c', duplicate=0)
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
