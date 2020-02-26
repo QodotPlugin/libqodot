@@ -26,6 +26,7 @@ godot_variant qodot_set_entity_definitions(godot_object *p_instance, void *p_met
 godot_variant qodot_set_worldspawn_layers(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_generate_geometry(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_get_entity_dicts(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
+godot_variant qodot_get_worldspawn_layer_dicts(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_gather_texture_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_gather_convex_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_gather_concave_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
@@ -75,6 +76,7 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
 	GD_REGISTER_METHOD("Qodot", set_worldspawn_layers, qodot_set_worldspawn_layers);
 	GD_REGISTER_METHOD("Qodot", generate_geometry, qodot_generate_geometry);
 	GD_REGISTER_METHOD("Qodot", get_entity_dicts, qodot_get_entity_dicts);
+	GD_REGISTER_METHOD("Qodot", get_worldspawn_layer_dicts, qodot_get_worldspawn_layer_dicts);
 	GD_REGISTER_METHOD("Qodot", gather_texture_surfaces, qodot_gather_texture_surfaces);
 	GD_REGISTER_METHOD("Qodot", gather_convex_collision_surfaces, qodot_gather_convex_collision_surfaces);
 	GD_REGISTER_METHOD("Qodot", gather_concave_collision_surfaces, qodot_gather_concave_collision_surfaces);
@@ -388,6 +390,101 @@ godot_variant qodot_get_entity_dicts(godot_object *p_instance, void *p_method_da
 	api->godot_array_destroy(&g_edicts);
 
 	return g_edicts_var;
+}
+
+godot_variant qodot_get_worldspawn_layer_dicts(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args)
+{
+	int ent_count = map_data_get_entity_count();
+	const entity *ents = map_data_get_entities();
+	const entity *worldspawn_entity = &ents[0];
+
+	godot_array g_layer_dicts;
+	api->godot_array_new(&g_layer_dicts);
+
+	int layer_count = map_data_get_worldspawn_layer_count();
+	const worldspawn_layer *layers = map_data_get_worldspawn_layers();
+
+	for (int l = 0; l < layer_count; ++l)
+	{
+		const worldspawn_layer *worldspawn_layer = &layers[l];
+
+		// Main layer dictionary
+		godot_dictionary g_layer_dict;
+		api->godot_dictionary_new(&g_layer_dict);
+
+		// Texture key
+		godot_string g_texture_key;
+		GD_STRING_FROM_UTF8(g_texture_key, "texture");
+
+		godot_variant g_texture_key_var;
+		GD_VARIANT_FROM_STRING(g_texture_key_var, g_texture_key);
+
+		// Texture value
+		godot_string g_texture_value;
+
+		texture_data *tex_data = map_data_get_texture(worldspawn_layer->texture_idx);
+
+		GD_STRING_FROM_UTF8(g_texture_value, tex_data->name);
+
+		godot_variant g_texture_value_var;
+		GD_VARIANT_FROM_STRING(g_texture_value_var, g_texture_value);
+
+		// Add texture to dict
+		GD_DICTIONARY_SET(g_layer_dict, g_texture_key_var, g_texture_value_var);
+
+		// Brush indices key
+		godot_string g_brush_indices_key;
+		GD_STRING_FROM_UTF8(g_brush_indices_key, "brush_indices");
+
+		godot_variant g_brush_indices_key_var;
+		GD_VARIANT_FROM_STRING(g_brush_indices_key_var, g_brush_indices_key);
+
+		// Brush indices value
+		godot_pool_int_array g_brush_indices_value;
+		api->godot_pool_int_array_new(&g_brush_indices_value);
+
+		for (int b = 0; b < worldspawn_entity->brush_count; ++b)
+		{
+			const brush *brush = &worldspawn_entity->brushes[b];
+			bool is_layer_brush = false;
+
+			for (int f = 0; f < brush->face_count; ++f)
+			{
+				const face *face = &brush->faces[f];
+
+				if (map_data_find_worldspawn_layer(face->texture_idx) != -1)
+				{
+					is_layer_brush = true;
+					break;
+				}
+			}
+
+			if(is_layer_brush)
+			{
+				api->godot_pool_int_array_append(&g_brush_indices_value, b);
+			}
+		}
+
+		godot_variant g_brush_indices_value_var;
+		api->godot_variant_new_pool_int_array(&g_brush_indices_value_var, &g_brush_indices_value);
+
+		// Add brush indices to dict
+		GD_DICTIONARY_SET(g_layer_dict, g_brush_indices_key_var, g_brush_indices_value_var);
+
+		// Add dictionary to array
+		godot_variant g_layer_dict_var;
+		api->godot_variant_new_dictionary(&g_layer_dict_var, &g_layer_dict);
+		api->godot_dictionary_destroy(&g_layer_dict);
+
+		api->godot_array_append(&g_layer_dicts, &g_layer_dict_var);
+		api->godot_variant_destroy(&g_layer_dict_var);
+	}
+
+	godot_variant g_layer_dicts_var;
+	api->godot_variant_new_array(&g_layer_dicts_var, &g_layer_dicts);
+	api->godot_array_destroy(&g_layer_dicts);
+
+	return g_layer_dicts_var;
 }
 
 godot_variant qodot_gather_texture_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args)
