@@ -99,8 +99,11 @@ godot_variant qodot_load_map(godot_object *p_instance, void *p_method_data, void
 {
 	godot_variant *map_file_var = p_args[0];
 	godot_string map_file_str = api->godot_variant_as_string(map_file_var);
+	api->godot_variant_destroy(map_file_var);
 	godot_char_string map_file_char_str = api->godot_string_utf8(&map_file_str);
+	api->godot_string_destroy(&map_file_str);
 	const char *map_file = api->godot_char_string_get_data(&map_file_char_str);
+	api->godot_char_string_destroy(&map_file_char_str);
 
 	map_parser_load(map_file);
 
@@ -398,6 +401,11 @@ godot_variant qodot_get_worldspawn_layer_dicts(godot_object *p_instance, void *p
 	const entity *ents = map_data_get_entities();
 	const entity *worldspawn_entity = &ents[0];
 
+	if(worldspawn_entity == NULL)
+	{
+		GD_RETURN_NULL();
+	}
+
 	godot_array g_layer_dicts;
 	api->godot_array_new(&g_layer_dicts);
 
@@ -423,6 +431,10 @@ godot_variant qodot_get_worldspawn_layer_dicts(godot_object *p_instance, void *p
 		godot_string g_texture_value;
 
 		texture_data *tex_data = map_data_get_texture(worldspawn_layer->texture_idx);
+		if(tex_data == NULL)
+		{
+			continue;
+		}
 
 		GD_STRING_FROM_UTF8(g_texture_value, tex_data->name);
 
