@@ -2,5 +2,6 @@ build/
 install/
 *.dblite
 *.obj
+*.os
 
 .DS_Store
