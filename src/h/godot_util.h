@@ -45,6 +45,19 @@
     godot_string g_##dest = api->godot_variant_as_string(&src); \
     GD_STRING_TO_CHAR(dest, g_##dest);
 
+#define GD_STRING_FROM_UTF8(dest, src) \
+	api->godot_string_new(&dest);      \
+	api->godot_string_parse_utf8(&dest, src);
+
+#define GD_VARIANT_FROM_STRING(dest, src)       \
+	api->godot_variant_new_string(&dest, &src); \
+	api->godot_string_destroy(&src);
+
+#define GD_DICTIONARY_SET(dict, key, value)         \
+	api->godot_dictionary_set(&dict, &key, &value); \
+	api->godot_variant_destroy(&key);               \
+	api->godot_variant_destroy(&value);
+
 #define GD_DESTROY(type, name) \
     api->godot_##type##_destroy(name)
 

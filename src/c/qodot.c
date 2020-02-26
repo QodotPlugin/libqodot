@@ -23,6 +23,7 @@ GDCALLINGCONV void qodot_destructor(godot_object *p_instance, void *p_method_dat
 godot_variant qodot_load_map(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_get_texture_list(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_set_entity_definitions(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
+godot_variant qodot_set_worldspawn_layers(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_generate_geometry(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_get_entity_dicts(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_gather_texture_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
@@ -71,6 +72,7 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
 	GD_REGISTER_METHOD("Qodot", load_map, qodot_load_map);
 	GD_REGISTER_METHOD("Qodot", get_texture_list, qodot_get_texture_list);
 	GD_REGISTER_METHOD("Qodot", set_entity_definitions, qodot_set_entity_definitions);
+	GD_REGISTER_METHOD("Qodot", set_worldspawn_layers, qodot_set_worldspawn_layers);
 	GD_REGISTER_METHOD("Qodot", generate_geometry, qodot_generate_geometry);
 	GD_REGISTER_METHOD("Qodot", get_entity_dicts, qodot_get_entity_dicts);
 	GD_REGISTER_METHOD("Qodot", gather_texture_surfaces, qodot_gather_texture_surfaces);
@@ -157,12 +159,60 @@ godot_variant qodot_set_entity_definitions(godot_object *p_instance, void *p_met
 		godot_variant g_spawn_type_value_var = api->godot_dictionary_get(&g_value, &g_spawn_type_key_var);
 		api->godot_dictionary_destroy(&g_value);
 		api->godot_variant_destroy(&g_spawn_type_key_var);
-		
+
 		int64_t spawn_type = api->godot_variant_as_int(&g_spawn_type_value_var);
 		api->godot_variant_destroy(&g_spawn_type_value_var);
 
 		map_data_set_spawn_type_by_classname(key, (enum entity_spawn_type)spawn_type);
 	}
+
+	GD_RETURN_NULL();
+}
+
+godot_variant qodot_set_worldspawn_layers(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args)
+{
+	godot_variant *g_worldspawn_layers_var = p_args[0];
+	godot_array g_worldspawn_layers = api->godot_variant_as_array(g_worldspawn_layers_var);
+
+	int worldspawn_layer_count = api->godot_array_size(&g_worldspawn_layers);
+	for (int l = 0; l < worldspawn_layer_count; l++)
+	{
+		godot_variant g_worldspawn_layer_var = api->godot_array_get(&g_worldspawn_layers, l);
+		godot_dictionary g_worldspawn_layer = api->godot_variant_as_dictionary(&g_worldspawn_layer_var);
+		api->godot_variant_destroy(&g_worldspawn_layer_var);
+
+		godot_array g_keys = api->godot_dictionary_keys(&g_worldspawn_layer);
+		godot_array g_values = api->godot_dictionary_values(&g_worldspawn_layer);
+		api->godot_dictionary_destroy(&g_worldspawn_layer);
+
+		int key_count = api->godot_array_size(&g_keys);
+
+		const char *texture = NULL;
+		bool build_visuals = false;
+
+		for (int k = 0; k < key_count; ++k)
+		{
+			godot_variant g_key_var = api->godot_array_get(&g_keys, k);
+			godot_variant g_value_var = api->godot_array_get(&g_values, k);
+
+			const char *key;
+			GD_VARIANT_STRING_TO_CHAR(key, g_key_var);
+
+			if (strcmp(key, "texture") == 0)
+			{
+				godot_string g_texture = api->godot_variant_as_string(&g_value_var);
+				GD_STRING_TO_CHAR(texture, g_texture);
+			}
+			else if (strcmp(key, "build_visuals") == 0)
+			{
+				build_visuals = api->godot_variant_as_bool(&g_value_var);
+			}
+		}
+
+		map_data_register_worldspawn_layer(texture, build_visuals);
+	}
+
+	api->godot_array_destroy(&g_worldspawn_layers);
 
 	GD_RETURN_NULL();
 }
@@ -217,30 +267,64 @@ godot_variant qodot_get_entity_dicts(godot_object *p_instance, void *p_method_da
 
 		// Brush count key
 		godot_string g_brush_count_key;
-		api->godot_string_new(&g_brush_count_key);
-		api->godot_string_parse_utf8(&g_brush_count_key, "brush_count");
+		GD_STRING_FROM_UTF8(g_brush_count_key, "brush_count");
 
 		godot_variant g_brush_count_key_var;
-		api->godot_variant_new_string(&g_brush_count_key_var, &g_brush_count_key);
-		api->godot_string_destroy(&g_brush_count_key);
+		GD_VARIANT_FROM_STRING(g_brush_count_key_var, g_brush_count_key);
 
 		// Brush count value
 		godot_variant g_brush_count_value_var;
 		api->godot_variant_new_int(&g_brush_count_value_var, ent->brush_count);
 
 		// Add brush count to dict
-		api->godot_dictionary_set(&g_edict, &g_brush_count_key_var, &g_brush_count_value_var);
-		api->godot_variant_destroy(&g_brush_count_key_var);
-		api->godot_variant_destroy(&g_brush_count_value_var);
+		GD_DICTIONARY_SET(g_edict, g_brush_count_key_var, g_brush_count_value_var);
+
+		// Brush indices key
+		godot_string g_brush_indices_key;
+		GD_STRING_FROM_UTF8(g_brush_indices_key, "brush_indices");
+
+		godot_variant g_brush_indices_key_var;
+		GD_VARIANT_FROM_STRING(g_brush_indices_key_var, g_brush_indices_key);
+
+		// Brush indices value
+		godot_pool_int_array g_brush_indices;
+		api->godot_pool_int_array_new(&g_brush_indices);
+
+		for (int b = 0; b < ent->brush_count; ++b)
+		{
+			const brush *brush = &ent->brushes[b];
+			bool is_worldspawn_layer_brush = false;
+
+			for (int f = 0; f < brush->face_count; ++f)
+			{
+				const face *face = &brush->faces[f];
+
+				if (map_data_find_worldspawn_layer(face->texture_idx) != -1)
+				{
+					is_worldspawn_layer_brush = true;
+					break;
+				}
+			}
+
+			if(!is_worldspawn_layer_brush)
+			{
+				api->godot_pool_int_array_append(&g_brush_indices, b);
+			}
+		}
+
+		godot_variant g_brush_indices_value_var;
+		api->godot_variant_new_pool_int_array(&g_brush_indices_value_var, &g_brush_indices);
+		api->godot_pool_int_array_destroy(&g_brush_indices);
+
+		// Add brush indices to dict
+		GD_DICTIONARY_SET(g_edict, g_brush_indices_key_var, g_brush_indices_value_var);
 
 		// Center key
 		godot_string g_center_key;
-		api->godot_string_new(&g_center_key);
-		api->godot_string_parse_utf8(&g_center_key, "center");
+		GD_STRING_FROM_UTF8(g_center_key, "center");
 
 		godot_variant g_center_key_var;
-		api->godot_variant_new_string(&g_center_key_var, &g_center_key);
-		api->godot_string_destroy(&g_center_key);
+		GD_VARIANT_FROM_STRING(g_center_key_var, g_center_key);
 
 		// Center value
 		godot_vector3 g_center_value;
@@ -249,18 +333,14 @@ godot_variant qodot_get_entity_dicts(godot_object *p_instance, void *p_method_da
 		api->godot_variant_new_vector3(&g_center_value_var, &g_center_value);
 
 		// Add center to dict
-		api->godot_dictionary_set(&g_edict, &g_center_key_var, &g_center_value_var);
-		api->godot_variant_destroy(&g_center_key_var);
-		api->godot_variant_destroy(&g_center_value_var);
+		GD_DICTIONARY_SET(g_edict, g_center_key_var, g_center_value_var);
 
 		// Property dict key
 		godot_string g_properties_key;
-		api->godot_string_new(&g_properties_key);
-		api->godot_string_parse_utf8(&g_properties_key, "properties");
+		GD_STRING_FROM_UTF8(g_properties_key, "properties");
 
 		godot_variant g_properties_key_var;
-		api->godot_variant_new_string(&g_properties_key_var, &g_properties_key);
-		api->godot_string_destroy(&g_properties_key);
+		GD_VARIANT_FROM_STRING(g_properties_key_var, g_properties_key);
 
 		// Property dict value
 		godot_dictionary g_properties_value;
@@ -272,35 +352,27 @@ godot_variant qodot_get_entity_dicts(godot_object *p_instance, void *p_method_da
 
 			// Key
 			godot_string g_key;
-			api->godot_string_new(&g_key);
-			api->godot_string_parse_utf8(&g_key, prop->key);
+			GD_STRING_FROM_UTF8(g_key, prop->key);
 
 			godot_variant g_key_var;
-			api->godot_variant_new_string(&g_key_var, &g_key);
-			api->godot_string_destroy(&g_key);
+			GD_VARIANT_FROM_STRING(g_key_var, g_key)
 
 			// Value
 			godot_string g_value;
-			api->godot_string_new(&g_value);
-			api->godot_string_parse_utf8(&g_value, prop->value);
+			GD_STRING_FROM_UTF8(g_value, prop->value);
 
 			godot_variant g_value_var;
-			api->godot_variant_new_string(&g_value_var, &g_value);
-			api->godot_string_destroy(&g_value);
+			GD_VARIANT_FROM_STRING(g_value_var, g_value)
 
 			// Add to dictionary
-			api->godot_dictionary_set(&g_properties_value, &g_key_var, &g_value_var);
-			api->godot_variant_destroy(&g_key_var);
-			api->godot_variant_destroy(&g_value_var);
+			GD_DICTIONARY_SET(g_properties_value, g_key_var, g_value_var);
 		}
 
 		godot_variant g_properties_value_var;
 		api->godot_variant_new_dictionary(&g_properties_value_var, &g_properties_value);
 
 		// Add properties to dict
-		api->godot_dictionary_set(&g_edict, &g_properties_key_var, &g_properties_value_var);
-		api->godot_variant_destroy(&g_properties_key_var);
-		api->godot_variant_destroy(&g_properties_value_var);
+		GD_DICTIONARY_SET(g_edict, g_properties_key_var, g_properties_value_var);
 
 		// Add dictionary to array
 		godot_variant g_edict_var;
