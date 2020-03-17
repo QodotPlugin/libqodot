@@ -31,3 +31,4 @@ deploy:
         tags: true
     draft: true
     overwrite: true
+    name: $TRAVIS_TAG
