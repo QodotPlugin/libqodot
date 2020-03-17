@@ -1,9 +1,6 @@
 language: c
 before_script:
     - mkdir build
-before_deploy:
-    - export TRAVIS_TAG=latest
-    - git tag $TRAVIS_TAG
 matrix:
     include:
         - os: osx
