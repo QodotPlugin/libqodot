@@ -69,3 +69,4 @@ elif env['platform'] == "windows":
 
 # Headers
 env.SConscript("libmap/SConscript", exports='env')
+env.SConscript("SConscript", exports='env')
