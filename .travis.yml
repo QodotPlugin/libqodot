@@ -29,5 +29,8 @@ deploy:
         - "build/*.dylib"
     on:
         repo: Shfty/libqodot
+        branches:
+            only:
+                - master
     draft: true
     overwrite: true
