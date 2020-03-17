@@ -38,5 +38,3 @@ deploy:
     draft: true
     force_update: true
     tag: $(APPVEYOR_REPO_TAG_NAME)
-    on:
-      APPVEYOR_REPO_TAG: true        # deploy on tag push only
