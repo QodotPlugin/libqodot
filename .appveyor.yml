@@ -38,5 +38,5 @@ deploy:
     draft: true
     force_update: true
     on:
-        tags: true
+      APPVEYOR_REPO_TAG: true
     tag: $(APPVEYOR_REPO_TAG_NAME)
