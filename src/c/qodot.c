@@ -473,7 +473,7 @@ godot_variant qodot_get_worldspawn_layer_dicts(godot_object *p_instance, void *p
 			{
 				const face *face = &brush->faces[f];
 
-				if (map_data_find_worldspawn_layer(face->texture_idx) != -1)
+				if (face->texture_idx == worldspawn_layer->texture_idx)
 				{
 					is_layer_brush = true;
 					break;
