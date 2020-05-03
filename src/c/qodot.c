@@ -32,8 +32,7 @@ godot_variant qodot_gather_texture_surfaces_internal(godot_object *p_instance, v
 godot_variant qodot_gather_worldspawn_layer_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_gather_entity_convex_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_gather_entity_concave_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
-godot_variant qodot_gather_worldspawn_layer_convex_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
-godot_variant qodot_gather_worldspawn_layer_concave_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
+godot_variant qodot_gather_worldspawn_layer_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 godot_variant qodot_gather_convex_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args, bool filter_layers);
 godot_variant qodot_gather_concave_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args, bool filter_layers);
 godot_variant qodot_fetch_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
@@ -87,8 +86,7 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
 	GD_REGISTER_METHOD("Qodot", gather_worldspawn_layer_surfaces, qodot_gather_worldspawn_layer_surfaces);
 	GD_REGISTER_METHOD("Qodot", gather_entity_convex_collision_surfaces, qodot_gather_entity_convex_collision_surfaces);
 	GD_REGISTER_METHOD("Qodot", gather_entity_concave_collision_surfaces, qodot_gather_entity_concave_collision_surfaces);
-	GD_REGISTER_METHOD("Qodot", gather_worldspawn_layer_convex_collision_surfaces, qodot_gather_worldspawn_layer_convex_collision_surfaces);
-	GD_REGISTER_METHOD("Qodot", gather_worldspawn_layer_concave_collision_surfaces, qodot_gather_worldspawn_layer_concave_collision_surfaces);
+	GD_REGISTER_METHOD("Qodot", gather_worldspawn_layer_collision_surfaces, qodot_gather_worldspawn_layer_collision_surfaces);
 	GD_REGISTER_METHOD("Qodot", fetch_surfaces, qodot_fetch_surfaces);
 }
 
@@ -553,15 +551,9 @@ godot_variant qodot_gather_entity_concave_collision_surfaces(godot_object *p_ins
 {
 	return qodot_gather_concave_collision_surfaces(p_instance, p_method_data, p_user_data, p_num_args, p_args, true);
 }
-
-godot_variant qodot_gather_worldspawn_layer_convex_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args)
+godot_variant qodot_gather_worldspawn_layer_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args)
 {
 	return qodot_gather_convex_collision_surfaces(p_instance, p_method_data, p_user_data, p_num_args, p_args, false);
-}
-
-godot_variant qodot_gather_worldspawn_layer_concave_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args)
-{
-	return qodot_gather_concave_collision_surfaces(p_instance, p_method_data, p_user_data, p_num_args, p_args, false);
 }
 
 godot_variant qodot_gather_convex_collision_surfaces(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args, bool filter_layers)
@@ -588,7 +580,6 @@ godot_variant qodot_gather_concave_collision_surfaces(godot_object *p_instance, 
 	surface_gatherer_set_split_type(SST_NONE);
 	surface_gatherer_set_entity_index_filter((int)entity_idx);
 	surface_gatherer_set_worldspawn_layer_filter(filter_layers);
-
 
 	surface_gatherer_run();
 
