@@ -37,7 +37,6 @@ elif env['platform'] == "osx":
     else:
         archFlags = ['-arch', 'x86_64']
         
-    env['target_path'] += 'osx/'
     if env['target'] in ('debug', 'd'):
         env.Append(CCFLAGS = ['-g','-O2', *archFlags])
         env.Append(LINKFLAGS = archFlags)
