@@ -31,7 +31,7 @@ if env['platform'] == '':
     quit();
 
 # Check our platform specifics
-elif env['platform'] == "osx"
+elif env['platform'] == "osx":
     if env['fat_binary']:
         archFlags = ['-arch', 'x86_64', '-arch', 'arm64']
     else:
