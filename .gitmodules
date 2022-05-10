@@ -3,4 +3,4 @@
 	url = https://github.com/GodotNativeTools/godot_headers.git
 [submodule "libmap"]
 	path = libmap
-	url = git@github.com:QodotPlugin/libmap
+	url = https://github.com/QodotPlugin/libmap
